@@ -3,7 +3,8 @@
 function install_phantomjs() {
     echo '>>> Installing PhantomJS'
 
-    curl --output /home/ubuntu/bin/phantomjs-2.0.1-linux-x86_64-dynamic https://s3.amazonaws.com/circle-support-bucket/phantomjs/phantomjs-2.0.1-linux-x86_64-dynamic
-    chmod a+x /home/ubuntu/bin/phantomjs-2.0.1-linux-x86_64-dynamic
-    sudo ln -s --force /home/ubuntu/bin/phantomjs-2.0.1-linux-x86_64-dynamic /usr/local/bin/phantomjs
+    local BIN=/usr/local/bin/phantomjs
+
+    curl --output $BIN https://s3.amazonaws.com/circle-downloads/phantomjs-2.1.1
+    chmod +x $BIN
 }

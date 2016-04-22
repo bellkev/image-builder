@@ -1,22 +1,19 @@
 #/bin/bash
 
-function disable_service() {
-    sysv-rc-conf $1 off
-}
-
 function install_redis() {
     apt-get install redis-server
-    disable_service redis-server
 }
 
 function install_memcached() {
     apt-get install memcached libmemcache-dev
-    disable_service memcached
 }
 
 function install_rabbitmq() {
     apt-get install rabbitmq-server
-    disable_service rabbitmq-server
+}
+
+function install_beanstalkd() {
+    apt-get install beanstalkd
 }
 
 function install_neo4j() {
@@ -27,8 +24,6 @@ function install_neo4j() {
 
     # Disable auth
     sed -i "s|dbms.security.auth_enabled=true|dbms.security.auth_enabled=false|g" /etc/neo4j/neo4j-server.properties
-
-    disable_service neo4j
 }
 
 function install_elasticsearch() {
@@ -41,18 +36,40 @@ function install_elasticsearch() {
 
     echo 'index.number_of_shards: 1' >> $CONFIG_FILE
     echo 'index.number_of_replicas: 0' >> $CONFIG_FILE
-
-    disable_service elasticsearch
+    # Because Getting Permission Denied error
+    sudo sed -i 's/sysctl -q -w vm.max_map_count=$MAX_MAP_COUNT/true/' /etc/init.d/elasticsearch
 }
 
+function install_cassandra() {
+    local VERSION=34
+    echo "deb http://www.apache.org/dist/cassandra/debian ${VERSION}x main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+
+    apt-get update
+    apt-get install cassandra
+
+    # Supressing ulimit error because of the lack of permission
+    sed -i 's/ulimit/#ulimit/'  /etc/init.d/cassandra
+
+    # Putting resource restriction
+    sed -i 's/system_memory_in_mb=.*/system_memory_in_mb=2048/' /etc/cassandra/cassandra-env.sh
+    sed -i 's/system_cpu_cores=.*/system_cpu_cores=1/' /etc/cassandra/cassandra-env.sh
+    sed -i 's/JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"/JVM_OPTS="$JVM_OPTS -Xms256M"/' /etc/cassandra/cassandra-env.sh
+}
+
+function install_riak() {
+    local VERSION=2.1.3
+
+    curl -s https://packagecloud.io/install/repositories/basho/riak/script.deb.sh | sudo bash
+    sudo apt-get install riak=${VERSION}-1
+}
+
+
 function install_sysadmin() {
-    cat << EOS | xargs apt-get install
-htop
-EOS
+    apt-get install htop
 }
 
 function install_devtools() {
-    cat << EOS | xargs apt-get install
+    apt-get install $(tr '\n' ' ' <<EOS
 ack-grep
 emacs
 gdb
@@ -62,4 +79,16 @@ tmux
 vim
 vnc4server
 EOS
+)
+}
+
+function install_closure() {
+    curl -L -o /tmp/closure.zip https://dl.google.com/closure-compiler/compiler-latest.zip
+    unzip -n /tmp/closure.zip
+}
+
+function install_prince() {
+    curl -L -o /tmp/prince.zip http://www.princexml.com/download/prince_9.0-5_ubuntu14.04_amd64.deb
+    dpkg -i /tmp/prince.zip
+    ln -s /usr/bin/prince /usr/local/bin/prince
 }

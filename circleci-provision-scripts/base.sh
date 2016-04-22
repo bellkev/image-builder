@@ -45,16 +45,20 @@ EOF
     export DEBIAN_FRONTEND=noninteractive
 
     apt-get update -y
+    apt-get install -y software-properties-common
+    apt-add-repository ppa:git-core/ppa
+    apt-get update -y
+
 
     # Install base packages
-    cat << EOS | xargs apt-get install
+    apt-get install $(tr '\n' ' ' <<EOS
 autoconf
 bsdtar
 build-essential
 cmake
 curl
 gfortran
-git-core
+git
 imagemagick
 libav-tools
 libicu-dev
@@ -63,9 +67,10 @@ lzop
 make
 mercurial
 parallel
-software-properties-common
+protobuf-compiler
 sysv-rc-conf
 unzip
 zip
 EOS
+)
 }

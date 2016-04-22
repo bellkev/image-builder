@@ -18,7 +18,7 @@ use our published containers as your base.
 For doing so, you can create a Dockerfile with the appropriate customizations:
 
 ```
-FROM circleci/ubuntu-server:trusty-latest
+FROM circleci/build-image:latest
 
 # You can use some basic tools, using the `circleci-install` helper function
 # for tools, CircleCI supports
@@ -88,7 +88,7 @@ host $ docker run -d \
 5b43b9fd24dd046a389dc2bbc2e84925c011910cfdd2de6cf638dd245f074831
 host $ # Now ssh into the container.  This depends whether you are using Docker natively or through docker-machine
 host $ # With native docker
-host $ CONTAINER_SSH_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "22/tcp") 0).HostPort}}')
+host $ CONTAINER_SSH_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "22/tcp") 0).HostPort}}' example-image-tester)
 host $ # If using docker-machine, need to connect to the docker-machine ip address
 host $ CONTAINER_SSH_HOST=$(docker-machine ip default) # or set to 127.0.0.1 if using Docker natively on a Linux box
 host $
@@ -108,6 +108,35 @@ Type "help" for help.
 ubuntu=# ;; psql is running
 ubuntu=# ;; psql is running
 ubuntu-# \quit
+```
+
+### Unit tests
+We also have unit tests written in [bats](https://github.com/sstephenson/bats). The tests are written to make sure tools/services installed in Dockerfile works correctly.
+
+If you write a Dockerfile to customize the container image, you can easily add/remove test bats files under `tests/unit` directory.
+
+Here is how you can run the unit tests.
+
+```
+# Build a test image.
+docker build -t test-image tests/
+
+# Run a test container with ssh port-forwarding
+docker run -d -v ~/image-builder/tests:/home/ubuntu/tests -p 12345:22 --name test-container test-image
+
+# Run tests via ssh
+ssh -i tests/insecure-ssh-key -p 12345 ubuntu@localhost bats tests/unit
+
+1..55
+ok 1 nodejs: all versions are installed
+ok 2 nodejs: 0.12.9 works
+ok 3 nodejs: 4.0.0 works
+ok 4 nodejs: 4.1.2 works
+ok 5 nodejs: 4.2.6 works
+ok 6 nodejs: 4.3.0 works
+ok 7 nodejs: 5.0.0 works
+ok 8 nodejs: 5.1.1 works
+.....
 ```
 
 # 3. Hooking up CircleCI to use the container
