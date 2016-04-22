@@ -1,0 +1,115 @@
+#!/bin/bash
+
+
+circleci-install base_requirements  && circleci-install circleci_specific
+
+# Databases
+circleci-install mysql_56
+
+circleci-install mongo
+
+circleci-install postgres
+circleci-install postgres_ext_postgis
+
+# Installing java early beacuse a few things have the dependency to java (i.g. cassandra)
+circleci-install java oraclejdk8
+circleci-install java openjdk8
+
+for package in sysadmin devtools redis memcached rabbitmq neo4j elasticsearch beanstalkd cassandra riak; do circleci-install $package; done
+
+# Dislabe services by default
+for s in apache2 redis-server memcached rabbitmq-server neo4j neo4j-service elasticsearch beanstalkd cassandra riak; do sysv-rc-conf $s off; done
+
+# Browsers
+circleci-install firefox
+
+circleci-install chrome
+
+circleci-install phantomjs
+
+# Android
+circleci-install android_sdk platform-tools
+circleci-install android_sdk extra-android-support
+circleci-install android_sdk android-23
+circleci-install android_sdk android-22
+circleci-install android_sdk build-tools-23.0.3
+circleci-install android_sdk build-tools-23.0.2
+circleci-install android_sdk build-tools-22.0.1
+circleci-install android_sdk extra-android-m2repository
+circleci-install android_sdk extra-google-m2repository
+circleci-install android_sdk extra-google-google_play_services
+
+# Qt
+circleci-install qt
+
+# awscli
+circleci-install awscli
+
+# gcloud
+circleci-install gcloud
+
+# Languages
+export USE_PRECOMPILE=true
+curl -s https://packagecloud.io/install/repositories/circleci/trusty/script.deb.sh | sudo bash
+
+circleci-install python 2.7.10
+circleci-install python 2.7.11
+circleci-install python 3.1.4
+circleci-install python 3.1.5
+circleci-install python 3.2.5
+circleci-install python 3.2.6
+circleci-install python 3.3.5
+circleci-install python 3.3.6
+circleci-install python 3.4.3
+circleci-install python 3.4.4
+circleci-install python 3.5.0
+circleci-install python 3.5.1
+circleci-install python pypy-1.9
+circleci-install python pypy-2.6.1
+circleci-install python pypy-4.0.1
+# TODO: make this more robust
+sudo -H -u ubuntu bash -c "source ~/.circlerc; pyenv global 2.7.11"
+
+circleci-install nodejs 0.12.9
+circleci-install nodejs 4.0.0
+circleci-install nodejs 4.1.2
+circleci-install nodejs 4.2.6
+circleci-install nodejs 4.3.0
+circleci-install nodejs 5.0.0
+circleci-install nodejs 5.1.1
+circleci-install nodejs 5.2.0
+circleci-install nodejs 5.3.0
+circleci-install nodejs 5.4.1
+circleci-install nodejs 5.5.0
+circleci-install nodejs 5.6.0
+circleci-install nodejs 5.7.0
+# TODO: make this more robust
+sudo -H -u ubuntu bash -c "source ~/.circlerc; nvm alias default 4.2.6"
+
+circleci-install golang 1.6
+
+circleci-install ruby 2.0.0-p647
+circleci-install ruby 2.1.7
+circleci-install ruby 2.1.8
+circleci-install ruby 2.2.3
+circleci-install ruby 2.2.4
+circleci-install ruby 2.3.0
+# TODO: make this more robust
+sudo -H -u ubuntu bash -c "source ~/.circlerc; rvm use 2.2.4 --default"
+
+circleci-install php 5.5.31
+circleci-install php 5.5.32
+circleci-install php 5.6.17
+circleci-install php 5.6.18
+circleci-install php 7.0.2
+circleci-install php 7.0.3
+# TODO: make this more robust
+sudo -H -u ubuntu bash -c "source ~/.circlerc; phpenv global 5.6.17"
+
+circleci-install clojure
+
+circleci-install scala
+
+# Docker have be last - to utilize cache better
+circleci-install docker
+circleci-install docker_compose
